@@ -30,7 +30,7 @@ fn build_coords(mut idx: usize, strides: &[usize]) -> Vec<usize> {
 }
 
 pub fn transpose(old: &[f32], cur: &[usize], new: &[usize], shape: &[usize]) -> Vec<f32>{
-    assert!(cur.len() == new.len() && cur.len() == shape.len(), "current and new rank is not the same");
+    assert!(cur.len() == new.len() && cur.len() == shape.len(), "current and new shape is not the same");
 
     let mut newdata: Vec<f32> = vec![0.; old.len()];
 
@@ -42,4 +42,16 @@ pub fn transpose(old: &[f32], cur: &[usize], new: &[usize], shape: &[usize]) -> 
     }
 
     return newdata;
+}
+
+
+pub fn add_inplace(this_data: &mut [f32], other_data: &[f32], this_trans: &[usize], other_trans: &[usize], this_shape: &[usize], other_shape: &[usize]){
+    assert!(this_shape == other_shape, "current and new shape is not the same");
+
+    let src_strides = compute_strides(this_shape, this_trans);
+    let dst_strides = compute_strides(other_shape, other_trans);
+
+    for (i,d) in this_data.iter_mut().enumerate() {
+        *d += other_data[flatten_coords(&build_coords(i, &dst_strides), &src_strides)];
+    }
 }

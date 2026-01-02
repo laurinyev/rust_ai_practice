@@ -20,3 +20,11 @@ fn tensor_transpose() {
     t.transpose_inplace(&[2,1]);
     assert_eq!(t.as_row_major(),vec![1.,3.,2.,4.])
 }
+
+#[test]
+fn tensor_add() {
+    let mut t = Tensor::values(2, &[2,2],&[1.,2.,3.,4.]);
+    let mut t2 = Tensor::values(2, &[2,2],&[4.,3.,2.,1.]);
+    t.add_inplace(&mut t2);
+    assert_eq!(t.as_row_major(),vec![5.,5.,5.,5.]);
+}

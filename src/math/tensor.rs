@@ -5,7 +5,7 @@ pub struct Tensor {
     rank: usize,
     dim: Vec<usize>,
     data: Vec<f32>,
-    transposition: Vec<usize>
+    trans: Vec<usize>
 }
 
 fn get_vec_size(dim: &[usize]) -> usize {
@@ -26,7 +26,7 @@ impl Tensor {
             rank, 
             dim: Vec::from(dim), 
             data: vec![0.; get_vec_size(dim.as_ref()) as usize],
-            transposition: get_default_transposition(rank)
+            trans: get_default_transposition(rank)
         }
     }
 
@@ -35,22 +35,26 @@ impl Tensor {
             rank, 
             dim: Vec::from(dim), 
             data: Vec::from(val),
-            transposition: get_default_transposition(rank)
+            trans: get_default_transposition(rank)
         }
     }
 
-    pub fn transpose(&self,transposition: &[usize])  -> Self {
+    pub fn transpose(&self,trans: &[usize])  -> Self {
         let mut toret = self.clone();
-        toret.transpose_inplace(transposition);
+        toret.transpose_inplace(trans);
         return toret;
     }
 
-    pub fn transpose_inplace(&mut self,transposition: &[usize]){
-        self.data = cpu::transpose(&self.data, &self.transposition, transposition, &self.dim);
+    pub fn transpose_inplace(&mut self,trans: &[usize]){
+        self.data = cpu::transpose(&self.data, &self.trans, trans, &self.dim);
+    }
+
+    pub fn add_inplace(&mut self, other: &mut Self) {
+        cpu::add_inplace(&mut self.data, &other.data, &self.trans, &other.trans, &self.dim, &other.dim);
     }
 
     pub fn as_row_major(&self) -> Vec<f32> {
-        if self.transposition[0] == 1 {
+        if self.trans[0] == 1 {
             return self.data.clone();
         } else {
             return self.transpose(&get_default_transposition(self.rank)).data.clone();
@@ -58,10 +62,10 @@ impl Tensor {
     }
 
     pub fn get_data_clone(&self) -> (Vec<f32>,Vec<usize>) {
-        (self.data.clone(), self.transposition.clone())
+        (self.data.clone(), self.trans.clone())
     }
 
     pub fn get_data_ref(&self) -> (&Vec<f32>,&Vec<usize>) {
-        (&self.data, &self.transposition)
+        (&self.data, &self.trans)
     }
 }
